@@ -180,11 +180,11 @@ def scene_tokyo_red(d, x, y, w, h):
     ax = x + 14 + 5 * 32 + 26
     d.line([ax, y + 30, ax, y + 64], fill=RED, width=3)
     d.polygon([(ax - 6, y + 58), (ax + 6, y + 58), (ax, y + 68)], fill=RED)
-    # Big red -3.30% chip on the board.
+    # Big red -2.78% chip on the board.
     f2 = lf('LiberationSans-Bold.ttf', 14)
-    tw2 = d.textlength('-3.30%', font=f2)
+    tw2 = d.textlength('-2.78%', font=f2)
     d.rectangle([x + 8 + bw2 - 78, y + 8, x + 8 + bw2 - 4, y + 24], fill=RED)
-    d.text((x + 8 + bw2 - 78 + (74 - tw2) / 2, y + 9), '-3.30%', font=f2, fill=(255, 255, 255))
+    d.text((x + 8 + bw2 - 78 + (74 - tw2) / 2, y + 9), '-2.78%', font=f2, fill=(255, 255, 255))
     # Floor.
     d.rectangle([x, y + 76, x + w, y + h], fill=(210, 180, 140))
     d.rectangle([x, y + 76, x + w, y + 78], fill=(180, 150, 110))
