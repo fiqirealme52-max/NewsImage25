@@ -643,7 +643,7 @@ REGIONS = [
 LEADS = [
     (1, scene_tokyo_red, 'REUTERS', 'WED \u00b7 REPORTED', 'TOKYO \u00b7 MARKETS \u00b7 WED',
      'Tokyo gives back the surge',
-     'Nikkei morning close 56,710 (-1,934, -3.30%); Advantest -12%, SoftBank -13%; Kospi -6.0%, Taiex -8.2% at midday. (Reuters)'),
+     'Nikkei final close 57,012 (-1,633, -2.78%); Advantest -12.9%, SoftBank -14.8%; Kospi -6.16%, Taiex -4.80% at close. (Reuters)'),
     (2, scene_jeddah, 'REUTERS', 'WED \u00b7 REPORTED', 'JEDDAH \u00b7 RED SEA \u00b7 WED',
      'Houthis threaten Saudi ports',
      'Jeddah and all Saudi Red Sea ports targeted if Riyadh hits Hodeidah; coalition strikes Hodeidah, Saada, Amran; Brent $90.97. (Reuters)'),
@@ -704,7 +704,7 @@ DATE_CHECK_FOOTER = (
     "TAGS: SAT 21 \u00b7 SUN 22 \u00b7 MON 23 \u00b7 TUE 24 \u00b7 WED 25 \u00b7 17 NOV"
 )
 TIMELINE = [
-    'WED 25 NOV 00:46 UTC \u00b7 Drone hits Kyiv courtyard \u00b7 02:30 UTC \u00b7 Nikkei morning close 56,710 (-3.30%)',
+    'WED 25 NOV 00:46 UTC \u00b7 Drone hits Kyiv courtyard \u00b7 06:00 UTC \u00b7 Nikkei final close 57,012 (-2.78%)',
     '08:00 UTC \u00b7 Ukraine AF: 73 of 96 drones downed \u00b7 WED 25 NOV \u00b7 Canberra wins Solomons pact; Dhaka lifts wage to $139',
     '13:30 GMT \u00b7 US core PCE + Q3 GDP due \u00b7 17:45 GMT \u00b7 UCL: Sabah\u2013Barcelona, Slavia\u2013Villarreal \u00b7 20:00 GMT \u00b7 seven more ties',
 ]
