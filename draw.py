@@ -25,6 +25,20 @@ GOLD = (212, 160, 60)
 def lf(name, size):
     return ImageFont.truetype('/usr/share/fonts/truetype/liberation/' + name, size)
 
+def nf(name, size):
+    return ImageFont.truetype('/usr/share/fonts/truetype/noto/' + name, size)
+
+def tracked_width(d, text, font, track):
+    return sum(d.textlength(ch, font=font) for ch in text) + track * (len(text) - 1)
+
+def draw_tracked(d, x, y, text, font, track, fill):
+    # Draw with manual letter-spacing (negative track squeezes the line).
+    cx = x
+    for ch in text:
+        d.text((cx, y), ch, font=font, fill=fill)
+        cx += d.textlength(ch, font=font) + track
+    return cx
+
 def fit_font(d, text, fname, sizes, max_w):
     for s in sizes:
         f = lf(fname, s)
@@ -131,15 +145,29 @@ def textwrap(d, text, font, max_w):
 
 def scene_tokyo_red(d, x, y, w, h):
     # L1: Tokyo trading floor, giant red board, falling red bars, busy floor.
+    # Sky window (right, 104px wide, full height): Tokyo Tower + skyline + clouds.
     vgrad(d, x, y, x + w, y + h, (252, 248, 240), (238, 232, 214))
-    # Window right: pale blue sky, sun, grey skyline.
-    d.rectangle([x + w - 80, y, x + w, y + 58], fill=SKY)
-    sun(d, x + w - 64, y + 16, 9)
-    for bx, bw, bh in [(x + w - 78, 18, 28), (x + w - 58, 12, 40), (x + w - 40, 20, 24), (x + w - 20, 10, 34)]:
-        d.rectangle([bx, y + 58 - bh, bx + bw, y + 58], fill=(120, 130, 140))
-        d.rectangle([bx + 3, y + 58 - bh + 4, bx + bw - 3, y + 58 - bh + 10], fill=(200, 220, 235))
-    # Big red board, left (wider and taller than before).
-    bw2, bh2 = w - 96, 68
+    # Window right: pale blue sky, sun, clouds, grey skyline, Tokyo Tower.
+    # (REUTERS chip covers x+w-65..x+w, y+8..y+24 — keep tower + sun clear of it.)
+    d.rectangle([x + w - 104, y, x + w, y + 74], fill=SKY)
+    sun(d, x + w - 88, y + 14, 8)
+    d.ellipse([x + w - 100, y + 6, x + w - 66, y + 16], fill=(255, 255, 255))
+    d.ellipse([x + w - 60, y + 30, x + w - 28, y + 38], fill=(255, 255, 255))
+    # Skyline buildings along the window base.
+    for bx, bw, bh in [(x + w - 102, 12, 26), (x + w - 70, 14, 22),
+                       (x + w - 34, 12, 30), (x + w - 20, 16, 20)]:
+        d.rectangle([bx, y + 74 - bh, bx + bw, y + 74], fill=(120, 130, 140))
+        d.rectangle([bx + 3, y + 74 - bh + 4, bx + bw - 3, y + 74 - bh + 10], fill=(200, 220, 235))
+        d.rectangle([bx + 3, y + 74 - bh + 14, bx + bw - 3, y + 74 - bh + 20], fill=(200, 220, 235))
+    # Tokyo Tower, red-white lattice, left of the REUTERS chip zone.
+    tx = x + w - 80
+    d.polygon([(tx - 7, y + 74), (tx - 2, y + 40), (tx + 2, y + 40), (tx + 7, y + 74)], fill=(200, 60, 50))
+    d.polygon([(tx - 2, y + 40), (tx, y + 26), (tx + 2, y + 40)], fill=(200, 60, 50))
+    d.line([tx, y + 26, tx, y + 20], fill=(200, 60, 50), width=2)
+    d.rectangle([tx - 5, y + 58, tx + 5, y + 62], fill=(255, 255, 255))
+    d.rectangle([tx - 4, y + 46, tx + 4, y + 49], fill=(255, 255, 255))
+    # Big red board, left (narrower to make room for the wider window).
+    bw2, bh2 = w - 120, 68
     d.rectangle([x + 8, y + 6, x + 8 + bw2, y + 6 + bh2], fill=(255, 255, 255), outline=(180, 170, 150))
     f = lf('LiberationSans-Bold.ttf', 11)
     d.text((x + 12, y + 9), 'NIKKEI 225', font=f, fill=RED)
@@ -220,31 +248,37 @@ def scene_courtroom(d, x, y, w, h):
     for i in range(5):
         d.rectangle([fx, fy + i * 3, fx + 34, fy + i * 3 + 2], fill=(200, 60, 50) if i % 2 == 0 else (255, 255, 255))
     d.rectangle([fx, fy, fx + 14, fy + 8], fill=(40, 60, 140))
-    # Judge bench, center (right of the GUILTY board).
+    # Judge bench, center (right of the GUILTY board), with wood paneling.
     d.rectangle([x + 136, y + 30, x + 216, y + 58], fill=(120, 80, 50))
     d.rectangle([x + 136, y + 30, x + 216, y + 36], fill=(150, 105, 65))
+    for px in [x + 156, x + 176, x + 196]:
+        d.line([px, y + 38, px, y + 56], fill=(90, 60, 35), width=1)
     # Scales of justice standing on the bench, left of the judge.
-    d.line([x + 148, y + 36, x + 148, y + 50], fill=GOLD, width=2)
-    d.line([x + 140, y + 38, x + 156, y + 38], fill=GOLD, width=2)
-    d.polygon([(x + 137, y + 44), (x + 143, y + 44), (x + 140, y + 49)], fill=GOLD)
-    d.polygon([(x + 153, y + 44), (x + 159, y + 44), (x + 156, y + 49)], fill=GOLD)
-    d.ellipse([x + 145, y + 33, x + 151, y + 37], fill=GOLD)
+    d.line([x + 148, y + 34, x + 148, y + 50], fill=GOLD, width=2)
+    d.line([x + 139, y + 37, x + 157, y + 37], fill=GOLD, width=2)
+    d.polygon([(x + 136, y + 44), (x + 142, y + 44), (x + 139, y + 50)], fill=GOLD)
+    d.polygon([(x + 154, y + 44), (x + 160, y + 44), (x + 157, y + 50)], fill=GOLD)
+    d.ellipse([x + 145, y + 31, x + 151, y + 36], fill=GOLD)
     # Judge, bigger and clearly visible, black robe, white collar, gavel in hand.
-    person(d, x + 182, y + 56, 24, skin=(232, 190, 150), shirt=(20, 20, 25), pants=(20, 20, 25))
-    d.rectangle([x + 178, y + 40, x + 186, y + 43], fill=(255, 255, 255))
-    d.line([x + 190, y + 36, x + 200, y + 32], fill=(120, 85, 50), width=3)
-    d.rectangle([x + 198, y + 28, x + 206, y + 34], fill=(120, 85, 50))
+    person(d, x + 184, y + 56, 28, skin=(232, 190, 150), shirt=(20, 20, 25), pants=(20, 20, 25))
+    d.rectangle([x + 179, y + 38, x + 189, y + 42], fill=(255, 255, 255))
+    d.line([x + 192, y + 34, x + 202, y + 30], fill=(120, 85, 50), width=3)
+    d.rectangle([x + 200, y + 26, x + 208, y + 32], fill=(120, 85, 50))
     # Jury box, right: four figures in a row, bigger.
     d.rectangle([x + 240, y + 34, x + w - 10, y + 60], fill=(190, 170, 140))
+    d.line([x + 240, y + 34, x + w - 10, y + 34], fill=(150, 130, 105), width=2)
     for jx in [x + 250, x + 270, x + 290, x + 309]:
-        person(d, jx, y + 60, 19, shirt=(70, 90, 130), pants=(50, 50, 60))
+        person(d, jx, y + 60, 22, shirt=(70, 90, 130), pants=(50, 50, 60))
     # GUILTY 10/12 board, top-left (wide enough for the full text).
     d.rectangle([x + 54, y + 26, x + 132, y + 44], fill=(255, 255, 255), outline=RED, width=2)
     f = lf('LiberationSans-Bold.ttf', 11)
     d.text((x + 58, y + 31), 'GUILTY 10/12', font=f, fill=RED)
-    # Two lawyers standing behind the courtroom rail, below the GUILTY board.
-    person(d, x + 70, y + 66, 14, shirt=(40, 40, 60), pants=(40, 40, 60))
-    person(d, x + 106, y + 66, 14, shirt=(90, 30, 30), pants=(40, 40, 60))
+    # Two lawyers standing behind the courtroom rail, below the GUILTY board — bigger.
+    person(d, x + 70, y + 66, 19, shirt=(40, 40, 60), pants=(40, 40, 60))
+    person(d, x + 106, y + 66, 19, shirt=(90, 30, 30), pants=(40, 40, 60))
+    # Papers on the rail in front of each lawyer.
+    d.rectangle([x + 62, y + 58, x + 78, y + 62], fill=(255, 255, 255), outline=(180, 180, 175))
+    d.rectangle([x + 98, y + 58, x + 114, y + 62], fill=(255, 255, 255), outline=(180, 180, 175))
     # Courtroom rail with balusters across the middle.
     d.rectangle([x + 8, y + 62, x + w - 8, y + 66], fill=(120, 80, 50))
     for bx in range(x + 16, x + w - 8, 20):
@@ -253,10 +287,11 @@ def scene_courtroom(d, x, y, w, h):
     d.rectangle([x + 20, y + 74, x + w - 20, y + h - 6], fill=(150, 105, 65))
     d.rectangle([x + 20, y + 74, x + w - 20, y + 78], fill=(180, 135, 85))
     for i, cx in enumerate([x + 40, x + 90, x + 140, x + 190, x + 240]):
-        d.rectangle([cx, y + 82, cx + 34, y + 92], fill=(220, 220, 215), outline=(120, 120, 115))
-        d.rectangle([cx + 4, y + 84, cx + 30, y + 86], fill=(150, 150, 145))
+        d.rectangle([cx, y + 80, cx + 34, y + 94], fill=(220, 220, 215), outline=(120, 120, 115))
+        d.rectangle([cx + 5, y + 83, cx + 29, y + 88], fill=(40, 60, 90))
+        d.rectangle([cx + 8, y + 90, cx + 26, y + 92], fill=(150, 150, 145))
     for i, bc in enumerate([(164, 30, 26), (60, 90, 60), (40, 60, 140)]):
-        d.rectangle([x + 278, y + 80 + i * 4, x + 304, y + 83 + i * 4], fill=bc, outline=(255, 255, 255))
+        d.rectangle([x + 276, y + 79 + i * 5, x + 304, y + 83 + i * 5], fill=bc, outline=(255, 255, 255))
     tag_chip(d, x + 10, y + h - 20, 'BROOKLYN', bg=INK, size=10)
 
 # ---------- MEDIUM SCENES (197x52) ----------
@@ -389,25 +424,39 @@ def scene_ucl(d, x, y, w, h):
         person(d, tx, y + 46, 11, shirt=(200, 40, 40), pants=(30, 30, 40))
 
 def scene_gaza(d, x, y, w, h):
-    # M10: Gaza street, daylight — concrete buildings, ambulance, smoke.
+    # M10: Gaza street, daylight — concrete buildings with LIT windows, minaret,
+    # ambulance, smoke. Lit windows + minaret make it read at thumbnail size.
     vgrad(d, x, y, x + w, y + h, (210, 230, 245), (240, 244, 250))
     sun(d, x + w - 16, y + 10, 7)
-    # Concrete buildings.
+    # Concrete buildings, warm sand-grey, with lit (yellow) + dark windows.
     for bx, bw, bh in [(x + 4, 34, 26), (x + 42, 28, 34), (x + 74, 30, 22)]:
-        d.rectangle([bx, y + h - bh - 8, bx + bw, y + h - 8], fill=(170, 165, 155), outline=(130, 125, 115))
+        d.rectangle([bx, y + h - bh - 8, bx + bw, y + h - 8], fill=(178, 168, 148), outline=(120, 112, 100))
+        wi = 0
         for wy in range(y + h - bh - 5, y + h - 12, 8):
             for wx in range(bx + 4, bx + bw - 4, 9):
-                d.rectangle([wx, wy, wx + 5, wy + 4], fill=(70, 70, 70))
+                col = (255, 222, 130) if wi % 3 != 2 else (70, 70, 70)
+                d.rectangle([wx, wy, wx + 5, wy + 4], fill=col)
+                wi += 1
+    # Minaret, right: tall tower with pointed top + balcony.
+    d.rectangle([x + 112, y + 6, x + 120, y + h - 8], fill=(200, 190, 165), outline=(130, 120, 105))
+    d.polygon([(x + 111, y + 6), (x + 121, y + 6), (x + 116, y + 0)], fill=(164, 30, 26))
+    d.rectangle([x + 110, y + 14, x + 122, y + 17], fill=(150, 140, 120))
+    d.rectangle([x + 114, y + 20, x + 118, y + 26], fill=(255, 222, 130))
     smoke(d, x + 64, y + 2, 20, 14)
+    smoke(d, x + 130, y + 0, 16, 12)
+    # Rubble pile at the base of the middle building.
+    d.polygon([(x + 44, y + h - 8), (x + 56, y + h - 16), (x + 68, y + h - 8)], fill=(140, 135, 125))
+    d.polygon([(x + 52, y + h - 8), (x + 60, y + h - 13), (x + 66, y + h - 8)], fill=(160, 155, 145))
     # Road.
     d.rectangle([x, y + h - 8, x + w, y + h], fill=(110, 110, 110))
     d.line([x, y + h - 4, x + w, y + h - 4], fill=(255, 255, 255), width=1)
-    # Ambulance, white van + red cross.
+    # Ambulance, white van + red cross, headlights on.
     d.rectangle([x + 118, y + h - 24, x + 168, y + h - 8], fill=(255, 255, 255), outline=(150, 150, 145))
     d.rectangle([x + 134, y + h - 22, x + 144, y + h - 12], fill=RED)
     d.rectangle([x + 138, y + h - 25, x + 140, y + h - 9], fill=RED)
     d.ellipse([x + 124, y + h - 9, x + 130, y + h - 3], fill=(30, 30, 30))
     d.ellipse([x + 158, y + h - 9, x + 164, y + h - 3], fill=(30, 30, 30))
+    d.ellipse([x + 166, y + h - 20, x + 170, y + h - 16], fill=(255, 225, 140))
     person(d, x + 96, y + h - 8, 12, shirt=(200, 60, 40))
     person(d, x + 186, y + h - 8, 12, shirt=(60, 90, 160))
 
@@ -434,6 +483,8 @@ def scene_sputnik(d, x, y, w, h):
 
 def scene_whitehouse(d, x, y, w, h):
     # M12: White House with podium, document stack, containers, US flag.
+    # (No dome — the White House has none; detail comes from pediment, columns,
+    # windows, roof flag, steps, trees and lawn instead.)
     vgrad(d, x, y, x + w, y + h, (205, 228, 242), (238, 242, 248))
     sun(d, x + 40, y + 10, 7)
     # US flag on a pole, right.
@@ -441,12 +492,31 @@ def scene_whitehouse(d, x, y, w, h):
     for i in range(4):
         d.rectangle([x + w - 14, y + 4 + i * 4, x + w - 2, y + 4 + i * 4 + 2], fill=(200, 60, 50) if i % 2 == 0 else (255, 255, 255))
     d.rectangle([x + w - 14, y + 4, x + w - 8, y + 10], fill=(40, 60, 140))
-    # White House: white block, columns, pediment.
+    # Trees flanking the building, with bushes at their feet.
+    for tx in [x + 44, x + 150]:
+        d.rectangle([tx - 1, y + 26, tx + 1, y + h - 8], fill=(90, 60, 35))
+        d.ellipse([tx - 7, y + 12, tx + 7, y + 26], fill=(60, 120, 60))
+        d.ellipse([tx - 5, y + 8, tx + 5, y + 18], fill=(80, 150, 80))
+        d.ellipse([tx - 8, y + h - 12, tx - 2, y + h - 6], fill=(70, 130, 70))
+        d.ellipse([tx + 2, y + h - 12, tx + 8, y + h - 6], fill=(70, 130, 70))
+    # White House: white block, columns, pediment with round window.
     d.rectangle([x + 56, y + 18, x + 140, y + h - 8], fill=(250, 250, 248), outline=(180, 175, 165))
     d.polygon([(x + 56, y + 18), (x + 140, y + 18), (x + 98, y + 8)], fill=(240, 240, 235), outline=(180, 175, 165))
+    d.ellipse([x + 94, y + 12, x + 102, y + 17], fill=(205, 225, 240), outline=(180, 175, 165))
+    # Small flag on the pediment peak.
+    d.line([x + 98, y + 8, x + 98, y + 1], fill=(70, 70, 70), width=1)
+    d.rectangle([x + 98, y + 1, x + 106, y + 5], fill=(200, 60, 50))
     for cx in [x + 64, x + 80, x + 96, x + 112, x + 128]:
         d.rectangle([cx, y + 22, cx + 4, y + h - 10], fill=(230, 230, 225), outline=(180, 175, 165))
+    # Windows flanking the central door.
+    for wx in [x + 66, x + 122]:
+        d.rectangle([wx, y + 26, wx + 8, y + 34], fill=(205, 225, 240), outline=(150, 150, 145))
+        d.line([wx + 4, y + 26, wx + 4, y + 34], fill=(150, 150, 145), width=1)
     d.rectangle([x + 92, y + 36, x + 104, y + h - 8], fill=(60, 60, 65))
+    # Lawn first, then steps in front of the door (drawn after, so they stay visible).
+    d.rectangle([x, y + h - 6, x + w, y + h], fill=(120, 150, 100))
+    for i, sy in enumerate([y + h - 8, y + h - 6, y + h - 4]):
+        d.rectangle([x + 86 - i * 2, sy, x + 110 + i * 2, sy + 2], fill=(200, 195, 185))
     # Podium + speaker, left.
     d.rectangle([x + 14, y + 34, x + 36, y + h - 8], fill=(120, 80, 50))
     person(d, x + 25, y + 34, 12, shirt=(40, 40, 60))
@@ -454,7 +524,6 @@ def scene_whitehouse(d, x, y, w, h):
     d.rectangle([x + 152, y + 36, x + 184, y + h - 8], fill=(255, 255, 255), outline=(150, 150, 145))
     for ly in range(y + 40, y + h - 12, 4):
         d.line([x + 156, ly, x + 180, ly], fill=(120, 120, 115), width=1)
-    d.rectangle([x, y + h - 6, x + w, y + h], fill=(120, 150, 100))
 
 def scene_cas_day(d, x, y, w, h):
     # M13: Lausanne — grey court block, gavel, trophy, red/green flag.
@@ -673,12 +742,17 @@ f = lf('LiberationSerif-Bold.ttf', 13)
 cnt = '29 STORIES \u00b7 7 REGIONS \u00b7 EVERY ONE DATED'
 d.text((1016 - d.textlength(cnt, font=f), 8), cnt, font=f, fill=INK)
 
-# Masthead: title case, largest size that fits.
+# Masthead: title case. Measured 25 Nov 11:35 WIB — LiberationSerif-Bold caps at
+# 76px (993px); NotoSerif-ExtraCondensedBold reaches 80px untracked (996px) and
+# 84px with -2px tracking (~1000px <= 1008). Taller glyphs = more dominant
+# masthead; condensed face is a standard newspaper display choice.
 title = 'Wednesday 25 November 2026'
-tf, tsize = fit_font(d, title, 'LiberationSerif-Bold.ttf', [84, 82, 80, 78, 76, 74], 1008)
-if tsize < 74:
-    sys.exit('MASTHEAD TOO SMALL: %d' % tsize)
-d.text((8, 26), title, font=tf, fill=INK)
+tf = nf('NotoSerif-ExtraCondensedBold.ttf', 84)
+tsize = 84
+tw = tracked_width(d, title, tf, -2)
+if tw > 1008:
+    sys.exit('MASTHEAD OVERFLOW: %d > 1008' % tw)
+draw_tracked(d, 8, 26, title, tf, -2, INK)
 deck = 'Tokyo gives back the surge \u00b7 Houthis threaten Jeddah \u00b7 Huawei guilty on 10 counts'
 df, dsize = fit_font(d, deck, 'LiberationSerif-Italic.ttf', [22, 20, 18, 16], 1008)
 d.text((8, 116), deck, font=df, fill=RED)
