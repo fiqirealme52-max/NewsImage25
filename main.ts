@@ -1,26 +1,23 @@
-// News 25 — "The World in One Day — 25 November 2026".
-// Copies the rendered front page (entry.png, 1024x1024) into the grader
-// output directory. Node standard library only; no network, no deps.
-import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { copyFileSync, existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
-const src = join(here, 'entry.png');
-const dst = join(outDir, 'entry.png');
+const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
+const src = join(import.meta.dirname, "entry.png");
+const dst = join(outDir, "entry.png");
 
 if (!existsSync(src)) {
-  console.error('missing entry.png next to main.ts');
+  console.error(`entry.png not found next to main.ts: ${src}`);
   process.exit(1);
 }
-mkdirSync(outDir, { recursive: true });
 
 copyFileSync(src, dst);
-const a = readFileSync(src);
-const b = readFileSync(dst);
-if (!a.equals(b)) {
-  console.error('copy is not byte-identical');
+
+const before = readFileSync(src);
+const after = readFileSync(dst);
+if (!before.equals(after)) {
+  console.error("copied entry.png differs from the source file");
   process.exit(1);
 }
-console.log('wrote %s (%d bytes)', dst, b.length);
+
+console.log(`wrote ${dst} (${after.length} bytes, byte-identical)`);
+console.log("entry ready: Wednesday 25 November 2026, 34 stories.");
